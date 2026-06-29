@@ -10,18 +10,20 @@ import { setUserData } from '../redux/userSlice'
 function LoginModal({ open, onClose }) {
     const dispatch = useDispatch()
 
-    // Google redirect ke baad wapas aane par yahan result milega
+    
     useEffect(() => {
         const handleRedirectResult = async () => {
             try {
                 const result = await getRedirectResult(auth)
-                if (!result) return // pehli load pe null aata hai, ignore karo
+                console.log("REDIRECT RESULT:", result)
+                if (!result) return 
 
                 const { data } = await axios.post(`${serverUrl}/api/auth/google`, {
                     name: result.user.displayName,
                     email: result.user.email,
                     avatar: result.user.photoURL
                 }, { withCredentials: true })
+                console.log("BACKEND RESPONSE:", data)
 
                 dispatch(setUserData(data))
                 onClose()
@@ -36,7 +38,7 @@ function LoginModal({ open, onClose }) {
     const handleGoogleAuth = async () => {
         try {
             await signInWithRedirect(auth, provider)
-            // Page redirect ho jaayega — result useEffect mein milega wapas aane par
+            
         } catch (error) {
             console.log("Google auth error:", error)
         }
