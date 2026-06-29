@@ -150,17 +150,44 @@ function Home() {
       <span className="text-purple-200">{userData?.credits ?? 10}</span>
     </button>
 
-    <button className="rounded-full bg-zinc-700/80 flex items-center justify-center text-sm md:text-base font-semibold border border-white/20 overflow-hidden w-[42px] h-[42px] backdrop-blur-md">
-      {userData?.avatar ? (
-        <img
-          src={userData.avatar}
-          alt="avatar"
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        initials
+    <div className="relative">
+      <button
+        onClick={() => setOpenProfile(prev => !prev)}
+        className="rounded-full bg-zinc-700/80 flex items-center justify-center text-sm md:text-base font-semibold border border-white/20 overflow-hidden w-[42px] h-[42px] backdrop-blur-md"
+      >
+        {userData?.avatar ? (
+          <img
+            src={userData.avatar}
+            alt="avatar"
+            className="w-full h-full object-cover"
+          />
+        ) : userData ? (
+          initials
+        ) : (
+          <span className="text-xs">?</span>
+        )}
+      </button>
+
+      {openProfile && (
+        <div className="absolute right-0 mt-2 w-40 rounded-xl bg-zinc-900 border border-white/10 shadow-lg overflow-hidden z-50">
+          {userData ? (
+            <button
+              onClick={handleLogOut}
+              className="w-full text-left px-4 py-2.5 text-sm text-zinc-200 hover:bg-white/10 transition"
+            >
+              Log out
+            </button>
+          ) : (
+            <button
+              onClick={() => { setOpenProfile(false); setOpenLogin(true) }}
+              className="w-full text-left px-4 py-2.5 text-sm text-zinc-200 hover:bg-white/10 transition"
+            >
+              Log in
+            </button>
+          )}
+        </div>
       )}
-    </button>
+    </div>
   </div>
 </nav>
 
