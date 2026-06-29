@@ -1,27 +1,47 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { AnimatePresence, motion } from "motion/react"
-import { signInWithPopup } from 'firebase/auth'
+import { signInWithRedirect, getRedirectResult } from 'firebase/auth'
 import { auth, provider } from '../firebase'
 import axios from "axios"
 import { serverUrl } from '../App'
 import { useDispatch } from 'react-redux'
 import { setUserData } from '../redux/userSlice'
+
 function LoginModal({ open, onClose }) {
-const dispatch=useDispatch()
-    const handleGoogleAuth=async ()=>{
+    const dispatch = useDispatch()
+
+    // Google redirect ke baad wapas aane par yahan result milega
+    useEffect(() => {
+        const handleRedirectResult = async () => {
+            try {
+                const result = await getRedirectResult(auth)
+                if (!result) return // pehli load pe null aata hai, ignore karo
+
+                const { data } = await axios.post(`${serverUrl}/api/auth/google`, {
+                    name: result.user.displayName,
+                    email: result.user.email,
+                    avatar: result.user.photoURL
+                }, { withCredentials: true })
+
+                dispatch(setUserData(data))
+                onClose()
+            } catch (error) {
+                console.log("Redirect result error:", error)
+            }
+        }
+
+        handleRedirectResult()
+    }, [])
+
+    const handleGoogleAuth = async () => {
         try {
-            const result=await signInWithPopup(auth,provider)
-            const {data}=await axios.post(`${serverUrl}/api/auth/google`,{
-                name:result.user.displayName,
-                email:result.user.email,
-                avatar:result.user.photoURL
-            },{withCredentials:true})
-            dispatch(setUserData(data))
-            onClose()
+            await signInWithRedirect(auth, provider)
+            // Page redirect ho jaayega — result useEffect mein milega wapas aane par
         } catch (error) {
-            console.log(error)
+            console.log("Google auth error:", error)
         }
     }
+
     return (
         <AnimatePresence>
             {open &&
@@ -60,7 +80,6 @@ const dispatch=useDispatch()
                                 X
                             </button>
 
-
                             <div className='relative px-8 pt-14 pb-10 text-center'>
                                 <h1 className='inline-block mb-6 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300'> AI-powered website builder </h1>
                                 <h2 className='text-3xl font-semibold leading-tight mb-3 space-x-2'>
@@ -74,12 +93,10 @@ const dispatch=useDispatch()
                                     onClick={handleGoogleAuth}
                                     className="group relative w-full h-13 rounded-xl bg-white text-black font-semibold shadow-xl overflow-hidden"
                                 >
-
                                     <div className='relative flex items-center justify-center gap-3'>
                                         <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" alt="" className='h-5 w-5' />
                                         Continue with Google
                                     </div>
-
                                 </motion.button>
 
                                 <div className='flex items-center gap-4 my-10'>
@@ -98,13 +115,9 @@ const dispatch=useDispatch()
                                         Privacy Policy
                                     </span>.
                                 </p>
-
                             </div>
-
-
                         </div>
                     </motion.div>
-
                 </motion.div>}
         </AnimatePresence>
     )
