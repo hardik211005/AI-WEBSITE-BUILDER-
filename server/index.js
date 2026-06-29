@@ -18,10 +18,10 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use((req, res, next) => {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-  res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none");
-  next();
-});
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+  next()
+})
+
 app.use(cors({
     origin: ["http://localhost:5173",
     "https://genwebai-nu.vercel.app"
