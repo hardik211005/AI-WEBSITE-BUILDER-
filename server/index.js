@@ -26,6 +26,10 @@ app.use("/api/website",websiteRouter)
 app.use("/api/billing",billingRouter)
 
 
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
+
 app.listen(port,()=>{
     console.log("server started")
     connectDb()
