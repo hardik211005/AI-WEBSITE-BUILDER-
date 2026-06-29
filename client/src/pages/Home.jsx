@@ -63,3 +63,5 @@ function Home() {
         }
         handleGetAllWebsites()
     }, [userData])}
+
+    export default Home
