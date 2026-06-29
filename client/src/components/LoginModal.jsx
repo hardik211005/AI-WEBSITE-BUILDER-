@@ -12,28 +12,29 @@ function LoginModal({ open, onClose }) {
 
     
     useEffect(() => {
-        const handleRedirectResult = async () => {
-            try {
-                const result = await getRedirectResult(auth)
-                console.log("REDIRECT RESULT:", result)
-                if (!result) return 
+    const handleRedirectResult = async () => {
+        try {
+            const result = await getRedirectResult(auth)
+            console.log("REDIRECT RESULT:", result)
+            if (!result) return 
 
-                const { data } = await axios.post(`${serverUrl}/api/auth/google`, {
-                    name: result.user.displayName,
-                    email: result.user.email,
-                    avatar: result.user.photoURL
-                }, { withCredentials: true })
-                console.log("BACKEND RESPONSE:", data)
+            const { data } = await axios.post(`${serverUrl}/api/auth/google`, {
+                name: result.user.displayName,
+                email: result.user.email,
+                avatar: result.user.photoURL
+            })
+            console.log("BACKEND RESPONSE:", data)
 
-                dispatch(setUserData(data))
-                onClose()
-            } catch (error) {
-                console.log("Redirect result error:", error)
-            }
+            localStorage.setItem("token", data.token)
+            dispatch(setUserData(data))
+            onClose()
+        } catch (error) {
+            console.log("Redirect result error:", error)
         }
+    }
 
-        handleRedirectResult()
-    }, [])
+    handleRedirectResult()
+}, [])
 
     const handleGoogleAuth = async () => {
         try {
