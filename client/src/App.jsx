@@ -10,7 +10,7 @@ import LiveSite from './pages/LiveSite'
 import Pricing from './pages/Pricing'
 import Community from './pages/Community'
 
-export const serverUrl="http://localhost:3001"
+export const serverUrl = import.meta.env.VITE_SERVER_URL;
 function App() {
   useGetCurrentUser()
   const {userData}=useSelector(state=>state.user)
