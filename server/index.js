@@ -10,10 +10,10 @@ import websiteRouter from "./routes/website.routes.js"
 import billingRouter from "./routes/billing.routes.js"
 import { stripeWebhook } from "./controllers/stripeWebhook.controller.js"
 
-const app=express()
+const app = express()
 
-app.post("/api/stripe/webhook",express.raw({type:"application/json"}),stripeWebhook)
-const port=process.env.PORT || 3000
+app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), stripeWebhook)
+const port = process.env.PORT || 3000
 app.use(express.json())
 app.use(cookieParser())
 
@@ -26,19 +26,29 @@ app.use(cors({
     origin: ["http://localhost:5173",
     "https://genwebai-nu.vercel.app"
     ],
-    credentials:true
+    credentials: true
 }))
-app.use("/api/auth",authRouter)
-app.use("/api/user",userRouter)
-app.use("/api/website",websiteRouter)
-app.use("/api/billing",billingRouter)
+
+// Har request se pehle DB connection ensure karo (serverless ke liye zaroori)
+app.use(async (req, res, next) => {
+    try {
+        await connectDb()
+        next()
+    } catch (error) {
+        return res.status(500).json({ message: "Database connection failed" })
+    }
+})
+
+app.use("/api/auth", authRouter)
+app.use("/api/user", userRouter)
+app.use("/api/website", websiteRouter)
+app.use("/api/billing", billingRouter)
 
 
 app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-app.listen(port,()=>{
+app.listen(port, () => {
     console.log("server started")
-    connectDb()
 })
