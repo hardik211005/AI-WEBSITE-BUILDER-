@@ -3,7 +3,7 @@ import User from "../models/user.model.js"
 
 const isAuth = async (req, res, next) => {
   try {
-    const token = req.cookies.token
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1]
     if (!token) {
       return res.status(400).json({ message: "token not found" })
     }
@@ -11,7 +11,6 @@ const isAuth = async (req, res, next) => {
     req.user = await User.findById(decoded.id)
     next()
   } catch (error) {
-    console.log("isAuth error:", error.message)  // yeh dekh Vercel logs mein
     return res.status(500).json({ message: "invalid token" })
   }
 }
