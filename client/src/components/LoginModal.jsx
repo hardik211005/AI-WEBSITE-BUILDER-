@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { AnimatePresence, motion } from "motion/react"
-import { signInWithRedirect, getRedirectResult } from 'firebase/auth'
+import { signInWithPopup } from 'firebase/auth'
 import { auth, provider } from '../firebase'
 import axios from "axios"
 import { serverUrl } from '../App'
@@ -10,13 +10,10 @@ import { setUserData } from '../redux/userSlice'
 function LoginModal({ open, onClose }) {
     const dispatch = useDispatch()
 
-    
-    useEffect(() => {
-    const handleRedirectResult = async () => {
+    const handleGoogleAuth = async () => {
         try {
-            const result = await getRedirectResult(auth)
-            console.log("REDIRECT RESULT:", result)
-            if (!result) return 
+            const result = await signInWithPopup(auth, provider)
+            console.log("POPUP RESULT:", result)
 
             const { data } = await axios.post(`${serverUrl}/api/auth/google`, {
                 name: result.user.displayName,
@@ -29,19 +26,7 @@ function LoginModal({ open, onClose }) {
             dispatch(setUserData(data))
             onClose()
         } catch (error) {
-            console.log("Redirect result error:", error)
-        }
-    }
-
-    handleRedirectResult()
-}, [])
-
-    const handleGoogleAuth = async () => {
-        try {
-            await signInWithRedirect(auth, provider)
-            
-        } catch (error) {
-            console.log("Google auth error:", error)
+            console.log("Google auth error:", error.code, error.message)
         }
     }
 
@@ -55,7 +40,6 @@ function LoginModal({ open, onClose }) {
                     exit={{ opacity: 0 }}
                     onClick={onClose}
                 >
-
                     <motion.div
                         initial={{ scale: 0.88, opacity: 0, y: 60 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -64,7 +48,7 @@ function LoginModal({ open, onClose }) {
                         className="relative w-full max-w-md p-[1px] rounded-3xl bg-gradient-to-br from-purple-500/40 via-blue-500/30 to-transparent"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className='relative rounded-3xl bg-[#0b0b0b] border border-white/10 shadow-[0_30px_120px_rgba(0,0,0,0.8)] overflow-hidden' >
+                        <div className='relative rounded-3xl bg-[#0b0b0b] border border-white/10 shadow-[0_30px_120px_rgba(0,0,0,0.8)] overflow-hidden'>
                             <motion.div
                                 animate={{ opacity: [0.25, 0.4, 0.25] }}
                                 transition={{ duration: 6, repeat: Infinity }}
@@ -84,9 +68,11 @@ function LoginModal({ open, onClose }) {
                             </button>
 
                             <div className='relative px-8 pt-14 pb-10 text-center'>
-                                <h1 className='inline-block mb-6 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300'> AI-powered website builder </h1>
+                                <h1 className='inline-block mb-6 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs text-zinc-300'>
+                                    AI-powered website builder
+                                </h1>
                                 <h2 className='text-3xl font-semibold leading-tight mb-3 space-x-2'>
-                                    <span >Welcome to</span>
+                                    <span>Welcome to</span>
                                     <span className='bg-linear-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent'>GenWeb.ai</span>
                                 </h2>
 
@@ -110,13 +96,9 @@ function LoginModal({ open, onClose }) {
 
                                 <p className='text-xs text-zinc-500 leading-relaxed'>
                                     By continuing, you agree to our{" "}
-                                    <span className="underline cursor-pointer hover:text-zinc-300">
-                                        Terms of Service
-                                    </span>{" "}
+                                    <span className="underline cursor-pointer hover:text-zinc-300">Terms of Service</span>{" "}
                                     and{" "}
-                                    <span className="underline cursor-pointer hover:text-zinc-300">
-                                        Privacy Policy
-                                    </span>.
+                                    <span className="underline cursor-pointer hover:text-zinc-300">Privacy Policy</span>.
                                 </p>
                             </div>
                         </div>
