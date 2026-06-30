@@ -9,17 +9,10 @@ const isAuth = async (req, res, next) => {
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     req.user = await User.findById(decoded.id)
-    if (!req.user) {
-      return res.status(404).json({ message: "user not found" })
-    }
     next()
   } catch (error) {
-    console.error("isAuth crash:", error)
-    return res.status(500).json({ 
-      message: "invalid token", 
-      error: error.message,
-      stack: error.stack 
-    })
+    console.error("isAuth error:", error.message)
+    return res.status(500).json({ message: "invalid token", error: error.message })
   }
 }
 
