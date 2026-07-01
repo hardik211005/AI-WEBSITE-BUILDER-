@@ -143,7 +143,7 @@ function Dashboard() {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition"
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-600/10 transition"
                 >
                   <LogOut size={16} />
                   Logout
