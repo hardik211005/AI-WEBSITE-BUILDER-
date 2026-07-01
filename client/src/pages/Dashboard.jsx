@@ -20,12 +20,18 @@ function Dashboard() {
     ? userData.name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase()
     : "U";
 
+  // Helper — har axios call mein token header automatically add hoga
+  const authHeader = () => {
+    const token = localStorage.getItem("token");
+    return { headers: { Authorization: `Bearer ${token}` }, withCredentials: true };
+  };
+
   useEffect(() => {
     const handleGetAllWebsites = async () => {
       setLoading(true);
       setError("");
       try {
-        const result = await axios.get(`${serverUrl}/api/website/get-all`, { withCredentials: true });
+        const result = await axios.get(`${serverUrl}/api/website/get-all`, authHeader());
         setWebsites(result.data || []);
       } catch (error) {
         setError(error?.response?.data?.message || "Something went wrong");
@@ -47,17 +53,17 @@ function Dashboard() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Delete this website? This cannot be undone.")) return
+    if (!confirm("Delete this website? This cannot be undone.")) return;
     try {
-      setDeletingId(id)
-      await axios.delete(`${serverUrl}/api/website/${id}`, { withCredentials: true })
-      setWebsites(prev => prev.filter(w => w._id !== id))
+      setDeletingId(id);
+      await axios.delete(`${serverUrl}/api/website/${id}`, authHeader());
+      setWebsites(prev => prev.filter(w => w._id !== id));
     } catch (error) {
-      alert(error?.response?.data?.message || "Failed to delete")
+      alert(error?.response?.data?.message || "Failed to delete");
     } finally {
-      setDeletingId(null)
+      setDeletingId(null);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen text-white relative overflow-hidden bg-[#050505]">
