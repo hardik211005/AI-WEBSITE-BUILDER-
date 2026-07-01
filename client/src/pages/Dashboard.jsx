@@ -1,26 +1,31 @@
-import { Check, Plus, Share2, Trash2 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { Check, Plus, Share2, Trash2, LogOut } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { serverUrl } from "../App";
+import { setUserData } from "../redux/userSlice";
+import { auth } from "../firebase";
+import { signOut } from "firebase/auth";
 
 function Dashboard() {
   const { userData } = useSelector((state) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [websites, setWebsites] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copiedId, setCopiedId] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const initials = userData?.name
     ? userData.name.split(" ").map((word) => word[0]).join("").slice(0, 2).toUpperCase()
     : "U";
 
-  // Helper — har axios call mein token header automatically add hoga
   const authHeader = () => {
     const token = localStorage.getItem("token");
     return { headers: { Authorization: `Bearer ${token}` }, withCredentials: true };
@@ -42,6 +47,17 @@ function Dashboard() {
     handleGetAllWebsites();
   }, []);
 
+  // close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleCopy = async (site) => {
     try {
       await navigator.clipboard.writeText(site.deployUrl);
@@ -57,11 +73,22 @@ function Dashboard() {
     try {
       setDeletingId(id);
       await axios.delete(`${serverUrl}/api/website/${id}`, authHeader());
-      setWebsites(prev => prev.filter(w => w._id !== id));
+      setWebsites((prev) => prev.filter((w) => w._id !== id));
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to delete");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      localStorage.removeItem("token");
+      dispatch(setUserData(null));
+      navigate("/login");
+    } catch (error) {
+      console.log("Logout error:", error);
     }
   };
 
@@ -90,9 +117,40 @@ function Dashboard() {
           <button onClick={() => navigate("/pricing")} className="px-5 py-2 rounded-full border border-white/20 text-sm md:text-base hover:bg-white/10 transition bg-white/5">
             Credits : <span className="text-purple-200">{userData?.credits ?? 10}</span>
           </button>
-          <button className="rounded-full bg-zinc-700/80 flex items-center justify-center text-sm font-semibold border border-white/20 overflow-hidden w-[42px] h-[42px]">
-            {userData?.avatar ? <img src={userData.avatar} alt="avatar" className="w-full h-full object-cover" /> : initials}
-          </button>
+
+          {/* Profile button + dropdown */}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setShowDropdown((prev) => !prev)}
+              className="rounded-full bg-zinc-700/80 flex items-center justify-center text-sm font-semibold border border-white/20 overflow-hidden w-[42px] h-[42px]"
+            >
+              {userData?.avatar ? (
+                <img src={userData.avatar} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
+            </button>
+
+            {showDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute right-0 mt-3 w-48 rounded-xl bg-[#0d111a] border border-white/10 shadow-lg shadow-black/40 overflow-hidden z-50"
+              >
+                <div className="px-4 py-3 border-b border-white/10">
+                  <p className="text-sm font-medium truncate">{userData?.name || "User"}</p>
+                  <p className="text-xs text-zinc-400 truncate">{userData?.email}</p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </motion.div>
+            )}
+          </div>
         </div>
       </nav>
 
